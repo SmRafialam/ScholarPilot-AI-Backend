@@ -36,6 +36,12 @@ export class ProfileService {
     return profile;
   }
 
+  /** Recompute + persist completion %, return the fresh profile. */
+  async recompute(userId: string): Promise<FullProfile> {
+    const { id } = await this.getMyProfile(userId);
+    return this.refreshCompletion(userId, id);
+  }
+
   async updateCore(userId: string, dto: UpdateProfileDto): Promise<FullProfile> {
     const { id } = await this.getMyProfile(userId);
     await this.repo.updateCore(id, dto as Prisma.StudentProfileUpdateInput);

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,10 +8,22 @@ import {
   Patch,
   Post,
   Put,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
+import { CvService } from './cv.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+
+/** Minimal shape of the multer file (avoids a hard dependency on @types/multer). */
+interface UploadedPdf {
+  buffer: Buffer;
+  mimetype: string;
+  size: number;
+  originalname: string;
+}
 import {
   CreateEducationDto,
   CreateExperienceDto,
@@ -32,11 +45,28 @@ import { ProfileService } from './profile.service';
 
 @Controller('profile')
 export class ProfileController {
-  constructor(private readonly profile: ProfileService) {}
+  constructor(
+    private readonly profile: ProfileService,
+    private readonly cv: CvService,
+  ) {}
 
   @Get('me')
   getMe(@CurrentUser() user: AuthUser) {
     return this.profile.getMyProfile(user.id);
+  }
+
+  /** Upload a CV (PDF) — AI extracts education, experience, publications & skills. */
+  @Post('cv')
+  @UseInterceptors(FileInterceptor('file'))
+  importCv(@CurrentUser() user: AuthUser, @UploadedFile() file: UploadedPdf) {
+    if (!file) throw new BadRequestException('No file uploaded');
+    if (file.mimetype !== 'application/pdf') {
+      throw new BadRequestException('Please upload a PDF file');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new BadRequestException('File too large (max 5MB)');
+    }
+    return this.cv.importFromPdf(user.id, file.buffer);
   }
 
   @Patch()
