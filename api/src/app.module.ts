@@ -12,6 +12,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AssistantModule } from './modules/assistant/assistant.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { DocumentModule } from './modules/document/document.module';
 import { EmailModule } from './modules/email/email.module';
@@ -57,8 +58,7 @@ import { PrismaModule } from './prisma/prisma.module';
     DashboardModule,
     AdminModule,
     NotificationModule,
-    // Feature modules land here module-by-module:
-    // PaymentsModule, ...
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [
