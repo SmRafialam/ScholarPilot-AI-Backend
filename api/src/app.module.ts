@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AssistantModule } from './modules/assistant/assistant.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
@@ -53,8 +54,9 @@ import { PrismaModule } from './prisma/prisma.module';
     EmailModule,
     TrackerModule,
     DashboardModule,
+    AdminModule,
     // Feature modules land here module-by-module:
-    // AdminModule, PaymentsModule, NotificationsModule, ...
+    // PaymentsModule, NotificationsModule, ...
   ],
   controllers: [AppController],
   providers: [
