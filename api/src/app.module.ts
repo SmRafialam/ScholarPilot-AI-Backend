@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,7 +11,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { ProfessorModule } from './modules/professor/professor.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { QueueModule } from './modules/queue/queue.module';
 import { ScholarshipModule } from './modules/scholarship/scholarship.module';
+import { ScraperModule } from './modules/scraper/scraper.module';
 import { UniversityModule } from './modules/university/university.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -23,6 +26,10 @@ import { PrismaModule } from './prisma/prisma.module';
     // Global rate limiting (100 req / 60s per IP by default).
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
 
+    // Background jobs (BullMQ/Redis) + cron scheduling.
+    ScheduleModule.forRoot(),
+    QueueModule,
+
     PrismaModule,
     MailModule,
     UsersModule,
@@ -31,8 +38,9 @@ import { PrismaModule } from './prisma/prisma.module';
     UniversityModule,
     ScholarshipModule,
     ProfessorModule,
+    ScraperModule,
     // Feature modules land here module-by-module:
-    // ScrapingModule, MatchingModule, AiModule, ...
+    // MatchingModule, AiModule, ...
   ],
   controllers: [AppController],
   providers: [
