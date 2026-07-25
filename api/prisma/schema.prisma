@@ -1,0 +1,831 @@
+// ============================================================================
+// ScholarPilot AI — Prisma schema
+// PostgreSQL. Relational core; vectors live in Qdrant, search in Meilisearch.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================ ENUMS =========================================
+
+enum Role {
+  STUDENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum TestType {
+  IELTS
+  TOEFL
+  GRE
+  GMAT
+  DUOLINGO
+}
+
+enum DegreeLevel {
+  BACHELOR
+  MASTER
+  PHD
+  DIPLOMA
+  CERTIFICATE
+}
+
+enum SkillCategory {
+  PROGRAMMING
+  RESEARCH
+  TOOL
+  SOFT
+  OTHER
+}
+
+enum ExperienceType {
+  WORK
+  INTERNSHIP
+  TEACHING
+  VOLUNTEER
+  OTHER
+}
+
+enum FundingRequirement {
+  FULL
+  PARTIAL
+  NONE
+}
+
+enum Intake {
+  FALL
+  SPRING
+  SUMMER
+  WINTER
+}
+
+enum FundingType {
+  FULLY_FUNDED
+  PARTIAL
+  TUITION_WAIVER
+  STIPEND
+  TRAVEL_GRANT
+  OTHER
+}
+
+enum ApplicationStage {
+  INTERESTED
+  PLANNING
+  DOCUMENTS_PENDING
+  APPLIED
+  WAITING
+  INTERVIEW
+  OFFER
+  REJECTED
+  ACCEPTED
+}
+
+enum DocumentType {
+  SOP
+  MOTIVATION_LETTER
+  RESEARCH_PROPOSAL
+  PERSONAL_STATEMENT
+  COVER_LETTER
+  CV
+  RESUME
+}
+
+enum EmailType {
+  COLD
+  PROFESSOR
+  FOLLOW_UP
+  REMINDER
+  INTERVIEW_REPLY
+  THANK_YOU
+}
+
+enum GenerationStatus {
+  DRAFT
+  FINALIZED
+  ARCHIVED
+}
+
+enum MatchTargetType {
+  UNIVERSITY
+  PROGRAM
+  SCHOLARSHIP
+  PROFESSOR
+}
+
+enum BookmarkType {
+  UNIVERSITY
+  SCHOLARSHIP
+  PROFESSOR
+}
+
+enum NotificationType {
+  DEADLINE
+  MATCH
+  STATUS
+  SYSTEM
+}
+
+enum ScrapeStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ScrapeEntityType {
+  UNIVERSITY
+  SCHOLARSHIP
+  PROFESSOR
+  PROGRAM
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum AiProvider {
+  ANTHROPIC
+  OPENAI
+  GEMINI
+}
+
+// ============================ AUTH / USER ===================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  googleId      String?   @unique
+  role          Role      @default(STUDENT)
+  emailVerified Boolean   @default(false)
+  isActive      Boolean   @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  profile            StudentProfile?
+  refreshTokens      RefreshToken[]
+  verificationTokens VerificationToken[]
+  applications       Application[]
+  documents          GeneratedDocument[]
+  emails             GeneratedEmail[]
+  matchResults       MatchResult[]
+  profileAnalyses    ProfileAnalysis[]
+  bookmarks          Bookmark[]
+  notifications      Notification[]
+  subscription       Subscription?
+  payments           Payment[]
+  auditLogs          AuditLog[]
+  aiUsageLogs        AiUsageLog[]
+
+  @@index([role])
+  @@index([deletedAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String
+  type      TokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+// ============================ STUDENT PROFILE ===============================
+
+model StudentProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  fullName          String?
+  countryId         String?
+  currentUniversity String?
+  department        String?
+  cgpa              Float?
+  cgpaScale         Float?  @default(4.0)
+  expectedGraduation DateTime?
+
+  researchInterest  String?
+  githubUrl         String?
+  portfolioUrl      String?
+  linkedinUrl       String?
+
+  budgetUsd          Int?
+  fundingRequirement FundingRequirement @default(FULL)
+  preferredIntake    Intake?
+  targetCountries    String[]
+
+  completionPercent Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  country      Country?      @relation(fields: [countryId], references: [id])
+  educations   Education[]
+  experiences  Experience[]
+  researches   Research[]
+  projects     Project[]
+  skills       Skill[]
+  languages    Language[]
+  publications Publication[]
+  testScores   TestScore[]
+
+  @@index([countryId])
+}
+
+model TestScore {
+  id        String   @id @default(cuid())
+  profileId String
+  type      TestType
+  score     Float
+  takenAt   DateTime?
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, type])
+}
+
+model Education {
+  id          String       @id @default(cuid())
+  profileId   String
+  institution String
+  degree      DegreeLevel
+  major       String?
+  gpa         Float?
+  startDate   DateTime?
+  endDate     DateTime?
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Experience {
+  id           String         @id @default(cuid())
+  profileId    String
+  title        String
+  organization String
+  type         ExperienceType @default(WORK)
+  description  String?
+  startDate    DateTime?
+  endDate      DateTime?
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Research {
+  id          String  @id @default(cuid())
+  profileId   String
+  title       String
+  area        String?
+  description String?
+  link        String?
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  profileId   String
+  name        String
+  description String?
+  link        String?
+  techStack   String[]
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Skill {
+  id        String        @id @default(cuid())
+  profileId String
+  name      String
+  category  SkillCategory @default(PROGRAMMING)
+  level     Int? // 1-5
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Language {
+  id          String @id @default(cuid())
+  profileId   String
+  name        String
+  proficiency String? // e.g. Native, C1, B2
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Publication {
+  id        String  @id @default(cuid())
+  profileId String
+  title     String
+  venue     String?
+  year      Int?
+  doi       String?
+  link      String?
+
+  profile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+// ============================ LOCATION ======================================
+
+model Country {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  code   String  @unique // ISO alpha-2
+  region String?
+
+  cities       City[]
+  universities University[]
+  scholarships Scholarship[]
+  profiles     StudentProfile[]
+}
+
+model City {
+  id        String @id @default(cuid())
+  name      String
+  countryId String
+
+  country      Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  universities University[]
+
+  @@unique([name, countryId])
+  @@index([countryId])
+}
+
+// ============================ UNIVERSITY ENGINE =============================
+
+model University {
+  id                String  @id @default(cuid())
+  name              String
+  countryId         String
+  cityId            String?
+  qsRanking         Int?
+  worldRanking      Int?
+  acceptanceRate    Float?
+  applicationFeeUsd Int?
+  tuitionFeeUsd     Int?
+  website           String?
+  applicationPortal String?
+  description       String?
+  logoUrl           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  country       Country        @relation(fields: [countryId], references: [id])
+  city          City?          @relation(fields: [cityId], references: [id])
+  departments   Department[]
+  scholarships  Scholarship[]
+  professors    Professor[]
+  researchAreas ResearchArea[] @relation("UniversityResearchAreas")
+
+  @@index([countryId])
+  @@index([qsRanking])
+}
+
+model Department {
+  id           String @id @default(cuid())
+  universityId String
+  name         String
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  programs   Program[]
+  professors Professor[]
+
+  @@unique([universityId, name])
+  @@index([universityId])
+}
+
+model Program {
+  id                  String      @id @default(cuid())
+  departmentId        String
+  name                String
+  degree              DegreeLevel
+  durationMonths      Int?
+  tuitionFeeUsd       Int?
+  englishRequirement  Json? // { ielts: 6.5, toefl: 90 }
+  greRequirement      Json?
+  applicationDeadline DateTime?
+  intake              Intake?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  department   Department            @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  requirements ApplicationRequirement[]
+
+  @@index([departmentId])
+  @@index([degree])
+}
+
+model ResearchArea {
+  id   String @id @default(cuid())
+  name String @unique
+
+  universities University[] @relation("UniversityResearchAreas")
+  professors   Professor[]  @relation("ProfessorResearchAreas")
+}
+
+// ============================ SCHOLARSHIP ENGINE ============================
+
+model Scholarship {
+  id              String      @id @default(cuid())
+  name            String
+  provider        String?
+  countryId       String?
+  universityId    String?
+  fundingType     FundingType @default(FULLY_FUNDED)
+  coverage        String?
+  benefits        String[]
+  deadline        DateTime?
+  applicationLink String?
+  description     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  country      Country?                @relation(fields: [countryId], references: [id])
+  university   University?             @relation(fields: [universityId], references: [id])
+  eligibility  ScholarshipEligibility?
+  requirements ApplicationRequirement[]
+
+  @@index([countryId])
+  @@index([universityId])
+  @@index([deadline])
+}
+
+model ScholarshipEligibility {
+  id            String @id @default(cuid())
+  scholarshipId String @unique
+
+  minCgpa         Float?
+  minIelts        Float?
+  degreeLevels    DegreeLevel[]
+  eligibleCountries String[]
+  criteria        Json? // free-form extra rules
+
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+}
+
+model ApplicationRequirement {
+  id            String  @id @default(cuid())
+  programId     String?
+  scholarshipId String?
+  document      String // e.g. "Transcript", "2 LORs"
+  mandatory     Boolean @default(true)
+
+  program     Program?     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  scholarship Scholarship? @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
+  @@index([scholarshipId])
+}
+
+// ============================ PROFESSOR ENGINE ==============================
+
+model Professor {
+  id                String   @id @default(cuid())
+  name              String
+  universityId      String
+  departmentId      String?
+  email             String?
+  facultyWebsite    String?
+  googleScholarUrl  String?
+  orcid             String?
+  acceptingStudents Boolean  @default(false)
+  hasFunding        Boolean  @default(false)
+  lab               String?
+  keywords          String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  university    University            @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  department    Department?           @relation(fields: [departmentId], references: [id])
+  publications  ProfessorPublication[]
+  researchAreas ResearchArea[]        @relation("ProfessorResearchAreas")
+
+  @@index([universityId])
+  @@index([departmentId])
+}
+
+model ProfessorPublication {
+  id          String  @id @default(cuid())
+  professorId String
+  title       String
+  venue       String?
+  year        Int?
+  link        String?
+
+  professor Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+
+  @@index([professorId])
+}
+
+// ============================ APPLICATIONS / TRACKER ========================
+
+model Application {
+  id            String           @id @default(cuid())
+  userId        String
+  universityId  String?
+  programId     String?
+  scholarshipId String?
+  professorId   String?
+  stage         ApplicationStage @default(INTERESTED)
+  notes         String?
+  deadline      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, stage])
+}
+
+// ============================ AI GENERATED CONTENT ==========================
+
+model GeneratedDocument {
+  id         String           @id @default(cuid())
+  userId     String
+  type       DocumentType
+  targetType MatchTargetType?
+  targetId   String?
+  title      String?
+  content    String
+  version    Int              @default(1)
+  status     GenerationStatus @default(DRAFT)
+  provider   AiProvider?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+model GeneratedEmail {
+  id          String           @id @default(cuid())
+  userId      String
+  type        EmailType
+  professorId String?
+  subject     String
+  body        String
+  version     Int              @default(1)
+  status      GenerationStatus @default(DRAFT)
+  provider    AiProvider?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+model MatchResult {
+  id         String          @id @default(cuid())
+  userId     String
+  targetType MatchTargetType
+  targetId   String
+  score      Float
+  breakdown  Json? // per-factor scores
+  reasoning  String?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId, targetType])
+}
+
+model ProfileAnalysis {
+  id               String  @id @default(cuid())
+  userId           String
+  profileStrength  Float
+  admissionChances Json // { "USA_TOP20": 15, "Germany": 82 }
+  fundingChances   Json
+  strengths        String[]
+  weaknesses       String[]
+  roadmap          Json // ordered improvement steps
+  estimatedBudget  Json?
+  timeline         Json?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================ SAVED / BOOKMARKS =============================
+
+model Bookmark {
+  id        String       @id @default(cuid())
+  userId    String
+  type      BookmarkType
+  refId     String
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, refId])
+  @@index([userId, type])
+}
+
+// ============================ NOTIFICATIONS =================================
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  title   String
+  body    String?
+  data    Json?
+  read    Boolean          @default(false)
+  createdAt DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+// ============================ SCRAPING ENGINE ===============================
+
+model ScrapeSource {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  baseUrl   String
+  type      ScrapeEntityType
+  enabled   Boolean   @default(true)
+  lastRunAt DateTime?
+
+  jobs ScrapeJob[]
+}
+
+model ScrapeJob {
+  id         String       @id @default(cuid())
+  sourceId   String
+  status     ScrapeStatus @default(PENDING)
+  itemsFound Int          @default(0)
+  error      String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime     @default(now())
+
+  source  ScrapeSource   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  records ScrapedRecord[]
+
+  @@index([sourceId, status])
+}
+
+model ScrapedRecord {
+  id         String           @id @default(cuid())
+  jobId      String
+  type       ScrapeEntityType
+  rawData    Json
+  dedupeHash String
+  status     ReviewStatus     @default(PENDING)
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  job ScrapeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([dedupeHash])
+  @@index([status, type])
+}
+
+// ============================ ADMIN / SYSTEM ================================
+
+model AuditLog {
+  id       String   @id @default(cuid())
+  userId   String?
+  action   String
+  entity   String?
+  entityId String?
+  meta     Json?
+  ip       String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+}
+
+model AiUsageLog {
+  id        String     @id @default(cuid())
+  userId    String?
+  provider  AiProvider
+  model     String
+  feature   String
+  tokensIn  Int        @default(0)
+  tokensOut Int        @default(0)
+  costCents Int        @default(0)
+  createdAt DateTime   @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([provider, createdAt])
+}
+
+// ============================ BILLING =======================================
+
+model Subscription {
+  id          String             @id @default(cuid())
+  userId      String             @unique
+  tier        PlanTier           @default(FREE)
+  status      SubscriptionStatus @default(ACTIVE)
+  provider    String? // stripe / paddle
+  providerRef String?
+  currentPeriodEnd DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  userId      String
+  amountCents Int
+  currency    String        @default("usd")
+  status      PaymentStatus @default(PENDING)
+  provider    String?
+  providerRef String?
+  createdAt   DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
