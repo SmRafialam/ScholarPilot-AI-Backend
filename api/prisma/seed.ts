@@ -1,4 +1,4 @@
-import { DegreeLevel, PrismaClient } from '@prisma/client';
+import { DegreeLevel, FundingType, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -109,14 +109,94 @@ async function main() {
     });
   }
 
-  const [countries, universities, programs, areas] = await Promise.all([
-    prisma.country.count(),
-    prisma.university.count(),
-    prisma.program.count(),
-    prisma.researchArea.count(),
-  ]);
+  console.log('🌱 Seeding scholarships...');
+  const SCHOLARSHIPS: {
+    name: string;
+    provider: string;
+    code: string;
+    fundingType: FundingType;
+    coverage: string;
+    benefits: string[];
+    minCgpa: number;
+    minIelts: number;
+  }[] = [
+    { name: 'DAAD EPOS Scholarship', provider: 'DAAD', code: 'DE', fundingType: 'FULLY_FUNDED', coverage: 'Full tuition + monthly stipend', benefits: ['Monthly stipend', 'Travel allowance', 'Health insurance'], minCgpa: 3.0, minIelts: 6.5 },
+    { name: 'Erasmus Mundus Joint Masters', provider: 'European Commission', code: 'NL', fundingType: 'FULLY_FUNDED', coverage: 'Full tuition + living costs', benefits: ['Tuition waiver', 'Monthly allowance', 'Travel & installation'], minCgpa: 3.2, minIelts: 6.5 },
+    { name: 'Vanier Canada Graduate Scholarship', provider: 'Government of Canada', code: 'CA', fundingType: 'FULLY_FUNDED', coverage: 'CAD $50,000/year for 3 years', benefits: ['Annual stipend'], minCgpa: 3.5, minIelts: 7.0 },
+    { name: 'Swedish Institute Scholarship', provider: 'Swedish Institute', code: 'SE', fundingType: 'FULLY_FUNDED', coverage: 'Tuition + living + insurance', benefits: ['Tuition', 'Living expenses', 'Insurance', 'Travel grant'], minCgpa: 3.0, minIelts: 6.5 },
+    { name: 'Australia Awards Scholarship', provider: 'Australian Government', code: 'AU', fundingType: 'FULLY_FUNDED', coverage: 'Full tuition + stipend', benefits: ['Tuition', 'Return air travel', 'Living allowance'], minCgpa: 3.0, minIelts: 6.5 },
+  ];
+  for (const s of SCHOLARSHIPS) {
+    const existing = await prisma.scholarship.findFirst({ where: { name: s.name } });
+    if (existing) continue;
+    await prisma.scholarship.create({
+      data: {
+        name: s.name,
+        provider: s.provider,
+        countryId: codeToId.get(s.code)!,
+        fundingType: s.fundingType,
+        coverage: s.coverage,
+        benefits: s.benefits,
+        eligibility: {
+          create: {
+            minCgpa: s.minCgpa,
+            minIelts: s.minIelts,
+            degreeLevels: ['MASTER', 'PHD'],
+          },
+        },
+      },
+    });
+  }
+
+  console.log('🌱 Seeding professors...');
+  const PROFESSORS: {
+    name: string;
+    uni: string;
+    email: string;
+    accepting: boolean;
+    funding: boolean;
+    keywords: string[];
+    areas: string[];
+    pubs: { title: string; venue: string; year: number }[];
+  }[] = [
+    { name: 'Prof. Dr. Anna Muller', uni: 'Technical University of Munich', email: 'a.mueller@tum.de', accepting: true, funding: true, keywords: ['machine learning', 'deep learning'], areas: ['Machine Learning', 'Artificial Intelligence'], pubs: [{ title: 'Efficient Transformers for Vision', venue: 'CVPR', year: 2024 }] },
+    { name: 'Prof. Mikko Virtanen', uni: 'Aalto University', email: 'mikko.virtanen@aalto.fi', accepting: true, funding: false, keywords: ['reinforcement learning', 'robotics'], areas: ['Robotics', 'Machine Learning'], pubs: [{ title: 'Sample-Efficient RL for Manipulation', venue: 'NeurIPS', year: 2023 }] },
+    { name: 'Prof. Sarah Chen', uni: 'University of Toronto', email: 's.chen@utoronto.ca', accepting: false, funding: true, keywords: ['computer vision', 'medical imaging'], areas: ['Computer Vision'], pubs: [{ title: 'Self-Supervised Medical Image Segmentation', venue: 'MICCAI', year: 2024 }] },
+  ];
+  for (const p of PROFESSORS) {
+    const uni = await prisma.university.findFirst({ where: { name: p.uni } });
+    if (!uni) continue;
+    const existing = await prisma.professor.findFirst({
+      where: { name: p.name, universityId: uni.id },
+    });
+    if (existing) continue;
+    await prisma.professor.create({
+      data: {
+        name: p.name,
+        universityId: uni.id,
+        email: p.email,
+        acceptingStudents: p.accepting,
+        hasFunding: p.funding,
+        keywords: p.keywords,
+        researchAreas: {
+          connectOrCreate: p.areas.map((name) => ({ where: { name }, create: { name } })),
+        },
+        publications: { create: p.pubs },
+      },
+    });
+  }
+
+  const [countries, universities, programs, areas, scholarships, professors] =
+    await Promise.all([
+      prisma.country.count(),
+      prisma.university.count(),
+      prisma.program.count(),
+      prisma.researchArea.count(),
+      prisma.scholarship.count(),
+      prisma.professor.count(),
+    ]);
   console.log(
-    `✅ Seed done — countries=${countries}, universities=${universities}, programs=${programs}, researchAreas=${areas}`,
+    `✅ Seed done — countries=${countries}, universities=${universities}, programs=${programs}, researchAreas=${areas}, scholarships=${scholarships}, professors=${professors}`,
   );
 }
 

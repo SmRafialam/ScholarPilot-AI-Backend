@@ -8,7 +8,9 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
+import { ProfessorModule } from './modules/professor/professor.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { ScholarshipModule } from './modules/scholarship/scholarship.module';
 import { UniversityModule } from './modules/university/university.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -27,8 +29,9 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     ProfileModule,
     UniversityModule,
+    ScholarshipModule,
+    ProfessorModule,
     // Feature modules land here module-by-module:
-    // ScholarshipModule, ProfessorModule,
     // ScrapingModule, MatchingModule, AiModule, ...
   ],
   controllers: [AppController],
