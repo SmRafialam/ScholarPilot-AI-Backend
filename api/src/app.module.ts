@@ -11,9 +11,11 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AssistantModule } from './modules/assistant/assistant.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { DocumentModule } from './modules/document/document.module';
 import { EmailModule } from './modules/email/email.module';
 import { MatchingModule } from './modules/matching/matching.module';
+import { TrackerModule } from './modules/tracker/tracker.module';
 import { ProfessorModule } from './modules/professor/professor.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { QueueModule } from './modules/queue/queue.module';
@@ -49,8 +51,10 @@ import { PrismaModule } from './prisma/prisma.module';
     AssistantModule,
     DocumentModule,
     EmailModule,
+    TrackerModule,
+    DashboardModule,
     // Feature modules land here module-by-module:
-    // TrackerModule, DashboardModule, PaymentsModule, NotificationsModule, ...
+    // AdminModule, PaymentsModule, NotificationsModule, ...
   ],
   controllers: [AppController],
   providers: [
