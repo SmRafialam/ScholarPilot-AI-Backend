@@ -11,6 +11,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AssistantModule } from './modules/assistant/assistant.module';
+import { DocumentModule } from './modules/document/document.module';
+import { EmailModule } from './modules/email/email.module';
 import { MatchingModule } from './modules/matching/matching.module';
 import { ProfessorModule } from './modules/professor/professor.module';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -45,8 +47,10 @@ import { PrismaModule } from './prisma/prisma.module';
     AiModule,
     MatchingModule,
     AssistantModule,
+    DocumentModule,
+    EmailModule,
     // Feature modules land here module-by-module:
-    // DocumentModule, EmailModule, ...
+    // TrackerModule, DashboardModule, PaymentsModule, NotificationsModule, ...
   ],
   controllers: [AppController],
   providers: [

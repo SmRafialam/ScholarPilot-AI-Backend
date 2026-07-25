@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiProvider } from '@prisma/client';
 import {
@@ -9,10 +9,12 @@ import {
 } from '../ai-provider.interface';
 
 const OPENAI_BASE = 'https://api.openai.com/v1';
+const MAX_ATTEMPTS = 3;
 
 @Injectable()
 export class OpenAiProvider implements AiProviderClient {
   readonly name = AiProvider.OPENAI;
+  private readonly logger = new Logger(OpenAiProvider.name);
   private readonly apiKey: string;
   private readonly chatModel: string;
   private readonly embedModel: string;
@@ -37,15 +39,7 @@ export class OpenAiProvider implements AiProviderClient {
     };
     if (opts.json) body.response_format = { type: 'json_object' };
 
-    const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
-      method: 'POST',
-      headers: this.headers(),
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      throw new Error(`OpenAI chat failed ${res.status}: ${await res.text()}`);
-    }
-    const data = await res.json();
+    const data = await this.request('/chat/completions', body);
     return {
       text: data.choices[0].message.content ?? '',
       tokensIn: data.usage?.prompt_tokens ?? 0,
@@ -55,15 +49,10 @@ export class OpenAiProvider implements AiProviderClient {
   }
 
   async embed(texts: string[]): Promise<EmbedResult> {
-    const res = await fetch(`${OPENAI_BASE}/embeddings`, {
-      method: 'POST',
-      headers: this.headers(),
-      body: JSON.stringify({ model: this.embedModel, input: texts }),
+    const data = await this.request('/embeddings', {
+      model: this.embedModel,
+      input: texts,
     });
-    if (!res.ok) {
-      throw new Error(`OpenAI embed failed ${res.status}: ${await res.text()}`);
-    }
-    const data = await res.json();
     return {
       vectors: data.data.map((d: { embedding: number[] }) => d.embedding),
       tokens: data.usage?.total_tokens ?? 0,
@@ -71,10 +60,43 @@ export class OpenAiProvider implements AiProviderClient {
     };
   }
 
-  private headers() {
-    return {
-      Authorization: `Bearer ${this.apiKey}`,
-      'Content-Type': 'application/json',
-    };
+  /** POST with retry on transient (5xx / network) errors + exponential backoff. */
+  private async request(
+    path: string,
+    body: Record<string, unknown>,
+  ): Promise<any> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+      try {
+        const res = await fetch(`${OPENAI_BASE}${path}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) return res.json();
+
+        // Retry only transient server errors + rate limits.
+        if ((res.status >= 500 || res.status === 429) && attempt < MAX_ATTEMPTS) {
+          this.logger.warn(`OpenAI ${res.status} on ${path}, retry ${attempt}/${MAX_ATTEMPTS}`);
+          await this.delay(500 * 2 ** (attempt - 1));
+          continue;
+        }
+        throw new Error(`OpenAI request failed ${res.status}: ${await res.text()}`);
+      } catch (err) {
+        lastError = err;
+        if (attempt < MAX_ATTEMPTS) {
+          await this.delay(500 * 2 ** (attempt - 1));
+          continue;
+        }
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error('OpenAI request failed');
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
