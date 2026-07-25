@@ -9,6 +9,8 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
+import { AiModule } from './modules/ai/ai.module';
+import { MatchingModule } from './modules/matching/matching.module';
 import { ProfessorModule } from './modules/professor/professor.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { QueueModule } from './modules/queue/queue.module';
@@ -39,8 +41,10 @@ import { PrismaModule } from './prisma/prisma.module';
     ScholarshipModule,
     ProfessorModule,
     ScraperModule,
+    AiModule,
+    MatchingModule,
     // Feature modules land here module-by-module:
-    // MatchingModule, AiModule, ...
+    // AiAssistantModule, DocumentModule, EmailModule, ...
   ],
   controllers: [AppController],
   providers: [
