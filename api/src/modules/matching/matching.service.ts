@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { MatchTargetType } from '@prisma/client';
+import { MatchTargetType, NotificationType } from '@prisma/client';
 import { AiService } from '../ai/ai.service';
+import { NotificationService } from '../notification/notification.service';
 import { MatchingRepository } from './matching.repository';
 import {
   cosineSimilarity,
@@ -32,6 +33,7 @@ export class MatchingService {
   constructor(
     private readonly repo: MatchingRepository,
     private readonly ai: AiService,
+    private readonly notifications: NotificationService,
   ) {}
 
   getResults(userId: string) {
@@ -89,6 +91,13 @@ export class MatchingService {
 
     // ---- Persist ----
     await this.persist(userId, uniScored, schScored, profScored);
+
+    await this.notifications.emit(
+      userId,
+      NotificationType.MATCH,
+      'Your matches are ready',
+      `We found ${uniScored.length} universities, ${schScored.length} scholarships and ${profScored.length} professors for you.`,
+    );
 
     return {
       profileStrength: strength,

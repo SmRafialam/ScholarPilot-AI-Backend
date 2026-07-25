@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Application, ApplicationStage } from '@prisma/client';
+import { Application, ApplicationStage, NotificationType } from '@prisma/client';
+import { NotificationService } from '../notification/notification.service';
 import { CreateApplicationDto, UpdateApplicationDto } from './dto/application.dto';
 import { TrackerRepository } from './tracker.repository';
 
@@ -15,7 +16,10 @@ export interface AppView extends Application {
 
 @Injectable()
 export class TrackerService {
-  constructor(private readonly repo: TrackerRepository) {}
+  constructor(
+    private readonly repo: TrackerRepository,
+    private readonly notifications: NotificationService,
+  ) {}
 
   async create(userId: string, dto: CreateApplicationDto) {
     if (!dto.universityId && !dto.scholarshipId && !dto.professorId) {
@@ -49,7 +53,18 @@ export class TrackerService {
   async update(userId: string, id: string, dto: UpdateApplicationDto) {
     const existing = await this.repo.findOwned(userId, id);
     if (!existing) throw new NotFoundException('Application not found');
-    return this.repo.update(id, dto);
+    const updated = await this.repo.update(id, dto);
+
+    if (dto.stage && dto.stage !== existing.stage) {
+      await this.notifications.emit(
+        userId,
+        NotificationType.STATUS,
+        'Application updated',
+        `An application moved to ${dto.stage.replace(/_/g, ' ')}.`,
+        { applicationId: id, stage: dto.stage },
+      );
+    }
+    return updated;
   }
 
   async remove(userId: string, id: string) {

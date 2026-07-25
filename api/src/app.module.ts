@@ -16,6 +16,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { DocumentModule } from './modules/document/document.module';
 import { EmailModule } from './modules/email/email.module';
 import { MatchingModule } from './modules/matching/matching.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { TrackerModule } from './modules/tracker/tracker.module';
 import { ProfessorModule } from './modules/professor/professor.module';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -55,8 +56,9 @@ import { PrismaModule } from './prisma/prisma.module';
     TrackerModule,
     DashboardModule,
     AdminModule,
+    NotificationModule,
     // Feature modules land here module-by-module:
-    // PaymentsModule, NotificationsModule, ...
+    // PaymentsModule, ...
   ],
   controllers: [AppController],
   providers: [
