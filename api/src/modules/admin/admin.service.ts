@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { PlanTier, Role } from '@prisma/client';
 import { AdminRepository } from './admin.repository';
 import { QueryUsersDto } from './dto/admin.dto';
 
@@ -36,6 +36,11 @@ export class AdminService {
     const updated = await this.repo.updateStatus(targetId, isActive);
     const { passwordHash: _omit, ...safe } = updated;
     return safe;
+  }
+
+  async changePlan(targetId: string, tier: PlanTier) {
+    await this.getUser(targetId);
+    return this.repo.updatePlan(targetId, tier);
   }
 
   analytics() {

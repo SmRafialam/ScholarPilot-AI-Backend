@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { PlanTier, Role } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
@@ -14,4 +14,8 @@ export class UpdateRoleDto {
 
 export class UpdateStatusDto {
   @IsBoolean() isActive!: boolean;
+}
+
+export class UpdatePlanDto {
+  @IsEnum(PlanTier) tier!: PlanTier;
 }

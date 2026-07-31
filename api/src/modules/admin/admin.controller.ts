@@ -4,7 +4,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { AdminService } from './admin.service';
-import { QueryUsersDto, UpdateRoleDto, UpdateStatusDto } from './dto/admin.dto';
+import { QueryUsersDto, UpdatePlanDto, UpdateRoleDto, UpdateStatusDto } from './dto/admin.dto';
 
 @Roles(Role.ADMIN, Role.SUPER_ADMIN)
 @Controller('admin')
@@ -29,6 +29,11 @@ export class AdminController {
   @Patch('users/:id/status')
   setStatus(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() dto: UpdateStatusDto) {
     return this.service.setStatus(u.id, id, dto.isActive);
+  }
+
+  @Patch('users/:id/plan')
+  changePlan(@Param('id') id: string, @Body() dto: UpdatePlanDto) {
+    return this.service.changePlan(id, dto.tier);
   }
 
   @Get('analytics')

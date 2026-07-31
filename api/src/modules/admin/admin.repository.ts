@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { PlanTier, Prisma, Role, SubscriptionStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueryUsersDto } from './dto/admin.dto';
 
@@ -28,6 +28,7 @@ export class AdminRepository {
           emailVerified: true,
           createdAt: true,
           profile: { select: { fullName: true, completionPercent: true } },
+          subscription: { select: { tier: true, status: true } },
         },
       }),
       this.prisma.user.count({ where }),
@@ -45,6 +46,15 @@ export class AdminRepository {
 
   updateStatus(id: string, isActive: boolean) {
     return this.prisma.user.update({ where: { id }, data: { isActive } });
+  }
+
+  /** Set a user's subscription tier (used by admins to grant Pro/Premium). */
+  updatePlan(userId: string, tier: PlanTier) {
+    return this.prisma.subscription.upsert({
+      where: { userId },
+      create: { userId, tier, status: SubscriptionStatus.ACTIVE },
+      update: { tier, status: SubscriptionStatus.ACTIVE },
+    });
   }
 
   async analytics() {
