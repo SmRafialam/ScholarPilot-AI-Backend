@@ -44,6 +44,6 @@ export class QueryScholarshipDto {
   @IsOptional() @IsEnum(FundingType) fundingType?: FundingType;
   @IsOptional() @Type(() => Date) @IsDate() deadlineBefore?: Date;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number = 1;
-  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number = 20;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(200) limit?: number = 20;
   @IsOptional() @IsString() sort?: 'deadline' | 'name';
 }

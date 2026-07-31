@@ -33,7 +33,7 @@ export class QueryUniversityDto {
   @IsOptional() @IsString() country?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) maxRanking?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number = 1;
-  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number = 20;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(200) limit?: number = 20;
   /** "ranking" (default) or "name". */
   @IsOptional() @IsString() sort?: 'ranking' | 'name';
 }
