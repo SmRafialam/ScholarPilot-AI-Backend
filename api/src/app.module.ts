@@ -28,6 +28,13 @@ import { UniversityModule } from './modules/university/university.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 
+/**
+ * Redis-backed background workers (scraper queue + cron). Disable on free hosts
+ * that don't provide Redis by setting DISABLE_WORKERS=true — the rest of the API
+ * (auth, profile, matching, AI, documents, …) runs fully without them.
+ */
+const WORKERS_ENABLED = process.env.DISABLE_WORKERS !== 'true';
+
 @Module({
   imports: [
     // Global env config — validated, no hardcoded values anywhere else.
@@ -36,9 +43,9 @@ import { PrismaModule } from './prisma/prisma.module';
     // Global rate limiting (100 req / 60s per IP by default).
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
 
-    // Background jobs (BullMQ/Redis) + cron scheduling.
+    // Background jobs (BullMQ/Redis) + cron scheduling — only when workers on.
     ScheduleModule.forRoot(),
-    QueueModule,
+    ...(WORKERS_ENABLED ? [QueueModule] : []),
 
     PrismaModule,
     MailModule,
@@ -48,7 +55,7 @@ import { PrismaModule } from './prisma/prisma.module';
     UniversityModule,
     ScholarshipModule,
     ProfessorModule,
-    ScraperModule,
+    ...(WORKERS_ENABLED ? [ScraperModule] : []),
     AiModule,
     MatchingModule,
     AssistantModule,
