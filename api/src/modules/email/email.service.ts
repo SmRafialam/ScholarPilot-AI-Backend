@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { AiProvider, EmailType, GenerationStatus } from '@prisma/client';
 import { AiService } from '../ai/ai.service';
+import { PlanLimitService } from '../billing/plan-limit.service';
 import { CreateEmailDto, UpdateEmailDto } from './dto/email.dto';
 import { EmailRepository } from './email.repository';
 
@@ -23,6 +24,7 @@ export class EmailService {
   constructor(
     private readonly repo: EmailRepository,
     private readonly ai: AiService,
+    private readonly limits: PlanLimitService,
   ) {}
 
   list(userId: string) {
@@ -36,6 +38,7 @@ export class EmailService {
   }
 
   async generate(userId: string, dto: CreateEmailDto) {
+    await this.limits.assertCanGenerateEmail(userId);
     const { subject, body } = await this.produce(userId, dto);
     return this.repo.create({
       userId,

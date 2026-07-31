@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { MatchTargetType, NotificationType } from '@prisma/client';
 import { AiService } from '../ai/ai.service';
+import { PlanLimitService } from '../billing/plan-limit.service';
 import { NotificationService } from '../notification/notification.service';
 import { MatchingRepository } from './matching.repository';
 import {
@@ -34,6 +35,7 @@ export class MatchingService {
     private readonly repo: MatchingRepository,
     private readonly ai: AiService,
     private readonly notifications: NotificationService,
+    private readonly limits: PlanLimitService,
   ) {}
 
   getResults(userId: string) {
@@ -41,8 +43,14 @@ export class MatchingService {
   }
 
   async runMatching(userId: string) {
+    await this.limits.assertCanRunMatching(userId);
+
     const profile = await this.repo.getProfile(userId);
     if (!profile) throw new BadRequestException('Complete your profile first');
+
+    // Professor matching is a Premium-only feature — skip it (and its embedding
+    // cost) for lower tiers, and tell the client so it can prompt an upgrade.
+    const professorMatchingAllowed = await this.limits.canProfessorMatching(userId);
 
     const snapshot = this.buildSnapshot(profile);
     const strength = profileStrength(snapshot);
@@ -83,14 +91,19 @@ export class MatchingService {
       })
       .sort((a, b) => b.score - a.score);
 
-    // ---- Professors (AI embeddings for research similarity) ----
-    const profScored = await this.scoreProfessors(userId, snapshot, professors);
+    // ---- Professors (AI embeddings for research similarity) — Premium only ----
+    const profScored = professorMatchingAllowed
+      ? await this.scoreProfessors(userId, snapshot, professors)
+      : [];
 
     // ---- AI explanations for the top matches ----
     await this.attachExplanations(userId, snapshot, strength, uniScored, schScored, profScored);
 
     // ---- Persist ----
     await this.persist(userId, uniScored, schScored, profScored);
+
+    // Count this run against the user's daily quota.
+    await this.limits.recordMatchRun(userId);
 
     await this.notifications.emit(
       userId,
@@ -104,6 +117,7 @@ export class MatchingService {
       universities: uniScored.slice(0, TOP_SAVED),
       scholarships: schScored.slice(0, TOP_SAVED),
       professors: profScored.slice(0, TOP_SAVED),
+      professorMatchingLocked: !professorMatchingAllowed,
     };
   }
 

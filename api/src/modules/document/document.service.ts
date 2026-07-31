@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { AiProvider, DocumentType, GenerationStatus } from '@prisma/client';
 import { AiService } from '../ai/ai.service';
+import { PlanLimitService } from '../billing/plan-limit.service';
 import { CreateDocumentDto, UpdateDocumentDto } from './dto/document.dto';
 import { DocumentRepository } from './document.repository';
 
@@ -23,6 +24,7 @@ export class DocumentService {
   constructor(
     private readonly repo: DocumentRepository,
     private readonly ai: AiService,
+    private readonly limits: PlanLimitService,
   ) {}
 
   list(userId: string) {
@@ -36,6 +38,7 @@ export class DocumentService {
   }
 
   async generate(userId: string, dto: CreateDocumentDto) {
+    await this.limits.assertCanGenerateDocument(userId);
     const content = await this.produce(userId, dto);
     const targetName =
       dto.targetType && dto.targetId
