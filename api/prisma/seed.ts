@@ -39,7 +39,6 @@ const RESEARCH_AREAS = [
   'Cloud Computing',
 ];
 
-/** Programs rotated across universities so every school has a couple of offerings. */
 const PROGRAM_POOL = [
   'MSc Computer Science',
   'MSc Artificial Intelligence',
@@ -51,129 +50,243 @@ const PROGRAM_POOL = [
   'MSc Human-Computer Interaction',
 ];
 
-/** [name, countryCode, city, qsRanking, tuitionFeeUsd] */
-const U: [string, string, string, number, number][] = [
-  // United States
-  ['Massachusetts Institute of Technology', 'US', 'Cambridge', 1, 58000],
-  ['Stanford University', 'US', 'Stanford', 5, 57000],
-  ['Harvard University', 'US', 'Cambridge', 4, 54000],
-  ['California Institute of Technology', 'US', 'Pasadena', 15, 56000],
-  ['University of California, Berkeley', 'US', 'Berkeley', 12, 43000],
-  ['Carnegie Mellon University', 'US', 'Pittsburgh', 52, 51000],
-  ['University of California, Los Angeles', 'US', 'Los Angeles', 42, 41000],
-  ['Princeton University', 'US', 'Princeton', 22, 55000],
-  ['Yale University', 'US', 'New Haven', 23, 53000],
-  ['Cornell University', 'US', 'Ithaca', 16, 52000],
-  ['Columbia University', 'US', 'New York', 23, 54000],
-  ['University of Michigan', 'US', 'Ann Arbor', 44, 40000],
-  ['Georgia Institute of Technology', 'US', 'Atlanta', 84, 33000],
-  ['University of Washington', 'US', 'Seattle', 63, 39000],
-  ['University of Illinois Urbana-Champaign', 'US', 'Urbana', 64, 36000],
-  ['University of Texas at Austin', 'US', 'Austin', 66, 38000],
-  ['New York University', 'US', 'New York', 38, 51000],
-  ['University of Chicago', 'US', 'Chicago', 21, 56000],
-  ['Johns Hopkins University', 'US', 'Baltimore', 28, 55000],
-  ['University of Pennsylvania', 'US', 'Philadelphia', 11, 55000],
-  // United Kingdom
-  ['University of Oxford', 'GB', 'Oxford', 3, 40000],
-  ['University of Cambridge', 'GB', 'Cambridge', 2, 42000],
-  ['Imperial College London', 'GB', 'London', 6, 39000],
-  ['University College London', 'GB', 'London', 9, 38000],
-  ['University of Edinburgh', 'GB', 'Edinburgh', 27, 35000],
-  ["King's College London", 'GB', 'London', 40, 34000],
-  ['University of Manchester', 'GB', 'Manchester', 34, 30000],
-  ['University of Bristol', 'GB', 'Bristol', 54, 29000],
-  ['University of Warwick', 'GB', 'Coventry', 69, 30000],
-  ['University of Glasgow', 'GB', 'Glasgow', 76, 28000],
-  ['University of Southampton', 'GB', 'Southampton', 80, 27000],
-  ['University of Leeds', 'GB', 'Leeds', 82, 27000],
-  // Canada
-  ['University of Toronto', 'CA', 'Toronto', 21, 45000],
-  ['University of British Columbia', 'CA', 'Vancouver', 34, 42000],
-  ['McGill University', 'CA', 'Montreal', 30, 40000],
-  ['University of Waterloo', 'CA', 'Waterloo', 112, 38000],
-  ['University of Alberta', 'CA', 'Edmonton', 111, 34000],
-  ['McMaster University', 'CA', 'Hamilton', 176, 33000],
-  ['University of Montreal', 'CA', 'Montreal', 141, 30000],
-  ['Western University', 'CA', 'London', 114, 32000],
-  // Germany
-  ['Technical University of Munich', 'DE', 'Munich', 28, 0],
-  ['Ludwig Maximilian University of Munich', 'DE', 'Munich', 59, 0],
-  ['Heidelberg University', 'DE', 'Heidelberg', 87, 0],
-  ['RWTH Aachen University', 'DE', 'Aachen', 99, 0],
-  ['Technical University of Berlin', 'DE', 'Berlin', 154, 0],
-  ['Humboldt University of Berlin', 'DE', 'Berlin', 120, 0],
-  ['Karlsruhe Institute of Technology', 'DE', 'Karlsruhe', 119, 0],
-  ['Technical University of Darmstadt', 'DE', 'Darmstadt', 279, 0],
-  ['University of Freiburg', 'DE', 'Freiburg', 192, 0],
-  ['University of Stuttgart', 'DE', 'Stuttgart', 312, 0],
-  // Australia
-  ['University of Melbourne', 'AU', 'Melbourne', 14, 32000],
-  ['University of Sydney', 'AU', 'Sydney', 18, 34000],
-  ['Australian National University', 'AU', 'Canberra', 30, 33000],
-  ['University of New South Wales', 'AU', 'Sydney', 19, 33000],
-  ['University of Queensland', 'AU', 'Brisbane', 40, 31000],
-  ['Monash University', 'AU', 'Melbourne', 37, 31000],
-  ['University of Western Australia', 'AU', 'Perth', 77, 29000],
-  ['University of Adelaide', 'AU', 'Adelaide', 82, 28000],
-  // Netherlands
-  ['Delft University of Technology', 'NL', 'Delft', 47, 18000],
-  ['University of Amsterdam', 'NL', 'Amsterdam', 53, 16000],
-  ['Eindhoven University of Technology', 'NL', 'Eindhoven', 124, 17000],
-  ['Utrecht University', 'NL', 'Utrecht', 107, 15000],
-  ['Leiden University', 'NL', 'Leiden', 126, 15000],
-  ['University of Groningen', 'NL', 'Groningen', 139, 14000],
-  // Switzerland
-  ['ETH Zurich', 'CH', 'Zurich', 7, 1500],
-  ['EPFL', 'CH', 'Lausanne', 26, 1600],
-  ['University of Zurich', 'CH', 'Zurich', 91, 1500],
-  // Sweden
-  ['KTH Royal Institute of Technology', 'SE', 'Stockholm', 73, 15000],
-  ['Lund University', 'SE', 'Lund', 85, 14000],
-  ['Chalmers University of Technology', 'SE', 'Gothenburg', 129, 14000],
-  ['Uppsala University', 'SE', 'Uppsala', 105, 14000],
-  // Finland
-  ['Aalto University', 'FI', 'Espoo', 100, 15000],
-  ['University of Helsinki', 'FI', 'Helsinki', 106, 15000],
-  ['University of Oulu', 'FI', 'Oulu', 301, 13000],
-  // Denmark
-  ['Technical University of Denmark', 'DK', 'Kongens Lyngby', 121, 0],
-  ['University of Copenhagen', 'DK', 'Copenhagen', 100, 0],
-  ['Aarhus University', 'DK', 'Aarhus', 156, 0],
-  // Norway
-  ['Norwegian University of Science and Technology', 'NO', 'Trondheim', 292, 0],
-  ['University of Oslo', 'NO', 'Oslo', 117, 0],
-  // Ireland
-  ['Trinity College Dublin', 'IE', 'Dublin', 87, 20000],
-  ['University College Dublin', 'IE', 'Dublin', 171, 19000],
-  // France
-  ['Sorbonne University', 'FR', 'Paris', 59, 5000],
-  ['PSL University', 'FR', 'Paris', 24, 5000],
-  ['Institut Polytechnique de Paris', 'FR', 'Palaiseau', 38, 6000],
-  ['University of Paris-Saclay', 'FR', 'Gif-sur-Yvette', 71, 5000],
-  ['Grenoble Alpes University', 'FR', 'Grenoble', 294, 4000],
-  // Belgium
-  ['KU Leuven', 'BE', 'Leuven', 61, 4000],
-  ['Ghent University', 'BE', 'Ghent', 142, 4000],
-  // Italy
-  ['Politecnico di Milano', 'IT', 'Milan', 123, 4000],
-  ['University of Bologna', 'IT', 'Bologna', 133, 3000],
-  ['Sapienza University of Rome', 'IT', 'Rome', 134, 3000],
-  // Japan
-  ['University of Tokyo', 'JP', 'Tokyo', 28, 9000],
-  ['Kyoto University', 'JP', 'Kyoto', 46, 9000],
-  ['Tokyo Institute of Technology', 'JP', 'Tokyo', 91, 9000],
-  ['Osaka University', 'JP', 'Osaka', 80, 9000],
-  // South Korea
-  ['Seoul National University', 'KR', 'Seoul', 41, 12000],
-  ['KAIST', 'KR', 'Daejeon', 53, 11000],
-  ['Yonsei University', 'KR', 'Seoul', 76, 12000],
-  // Singapore
-  ['National University of Singapore', 'SG', 'Singapore', 8, 20000],
-  ['Nanyang Technological University', 'SG', 'Singapore', 15, 19000],
-  // New Zealand
-  ['University of Auckland', 'NZ', 'Auckland', 65, 25000],
-  ['University of Otago', 'NZ', 'Dunedin', 206, 23000],
+/** Typical international master's tuition (USD/yr) by country. */
+const TUITION: Record<string, number> = {
+  US: 45000, GB: 32000, CA: 38000, DE: 0, AU: 33000, NL: 16000, CH: 1600,
+  SE: 15000, FI: 14000, DK: 0, NO: 0, IE: 20000, FR: 5000, BE: 4000,
+  IT: 3500, JP: 9000, KR: 11000, SG: 20000, NZ: 25000,
+};
+
+/** [name, countryCode, city, qsRanking] — tuition derived from country. */
+const U: [string, string, string, number][] = [
+  // ---------------- United States ----------------
+  ['Massachusetts Institute of Technology', 'US', 'Cambridge', 1],
+  ['Stanford University', 'US', 'Stanford', 5],
+  ['Harvard University', 'US', 'Cambridge', 4],
+  ['California Institute of Technology', 'US', 'Pasadena', 15],
+  ['University of California, Berkeley', 'US', 'Berkeley', 12],
+  ['Carnegie Mellon University', 'US', 'Pittsburgh', 52],
+  ['University of California, Los Angeles', 'US', 'Los Angeles', 42],
+  ['Princeton University', 'US', 'Princeton', 22],
+  ['Yale University', 'US', 'New Haven', 23],
+  ['Cornell University', 'US', 'Ithaca', 16],
+  ['Columbia University', 'US', 'New York', 23],
+  ['University of Michigan', 'US', 'Ann Arbor', 44],
+  ['Georgia Institute of Technology', 'US', 'Atlanta', 84],
+  ['University of Washington', 'US', 'Seattle', 63],
+  ['University of Illinois Urbana-Champaign', 'US', 'Urbana', 64],
+  ['University of Texas at Austin', 'US', 'Austin', 66],
+  ['New York University', 'US', 'New York', 38],
+  ['University of Chicago', 'US', 'Chicago', 21],
+  ['Johns Hopkins University', 'US', 'Baltimore', 28],
+  ['University of Pennsylvania', 'US', 'Philadelphia', 11],
+  ['University of California, San Diego', 'US', 'San Diego', 72],
+  ['University of Wisconsin-Madison', 'US', 'Madison', 89],
+  ['Purdue University', 'US', 'West Lafayette', 99],
+  ['University of Maryland', 'US', 'College Park', 156],
+  ['University of Southern California', 'US', 'Los Angeles', 116],
+  ['Boston University', 'US', 'Boston', 108],
+  ['Northeastern University', 'US', 'Boston', 189],
+  ['University of Massachusetts Amherst', 'US', 'Amherst', 262],
+  ['Ohio State University', 'US', 'Columbus', 151],
+  ['Pennsylvania State University', 'US', 'University Park', 105],
+  ['University of Minnesota', 'US', 'Minneapolis', 185],
+  ['University of California, Davis', 'US', 'Davis', 103],
+  ['University of California, Irvine', 'US', 'Irvine', 205],
+  ['Rutgers University', 'US', 'New Brunswick', 260],
+  ['Texas A&M University', 'US', 'College Station', 154],
+  // ---------------- United Kingdom ----------------
+  ['University of Oxford', 'GB', 'Oxford', 3],
+  ['University of Cambridge', 'GB', 'Cambridge', 2],
+  ['Imperial College London', 'GB', 'London', 6],
+  ['University College London', 'GB', 'London', 9],
+  ['University of Edinburgh', 'GB', 'Edinburgh', 27],
+  ["King's College London", 'GB', 'London', 40],
+  ['University of Manchester', 'GB', 'Manchester', 34],
+  ['University of Bristol', 'GB', 'Bristol', 54],
+  ['University of Warwick', 'GB', 'Coventry', 69],
+  ['University of Glasgow', 'GB', 'Glasgow', 76],
+  ['University of Southampton', 'GB', 'Southampton', 80],
+  ['University of Leeds', 'GB', 'Leeds', 82],
+  ['University of Birmingham', 'GB', 'Birmingham', 84],
+  ['University of Sheffield', 'GB', 'Sheffield', 105],
+  ['University of Nottingham', 'GB', 'Nottingham', 108],
+  ['University of Bath', 'GB', 'Bath', 150],
+  ['Queen Mary University of London', 'GB', 'London', 145],
+  ['Lancaster University', 'GB', 'Lancaster', 168],
+  ['University of York', 'GB', 'York', 162],
+  ['Newcastle University', 'GB', 'Newcastle', 129],
+  ['University of Liverpool', 'GB', 'Liverpool', 176],
+  ['Durham University', 'GB', 'Durham', 78],
+  ['Cardiff University', 'GB', 'Cardiff', 165],
+  ['University of Aberdeen', 'GB', 'Aberdeen', 236],
+  ['University of Sussex', 'GB', 'Brighton', 218],
+  // ---------------- Canada ----------------
+  ['University of Toronto', 'CA', 'Toronto', 21],
+  ['University of British Columbia', 'CA', 'Vancouver', 34],
+  ['McGill University', 'CA', 'Montreal', 30],
+  ['University of Waterloo', 'CA', 'Waterloo', 112],
+  ['University of Alberta', 'CA', 'Edmonton', 111],
+  ['McMaster University', 'CA', 'Hamilton', 176],
+  ['University of Montreal', 'CA', 'Montreal', 141],
+  ['Western University', 'CA', 'London', 114],
+  ['University of Ottawa', 'CA', 'Ottawa', 189],
+  ['University of Calgary', 'CA', 'Calgary', 182],
+  ["Queen's University", 'CA', 'Kingston', 209],
+  ['Simon Fraser University', 'CA', 'Burnaby', 318],
+  ['University of Victoria', 'CA', 'Victoria', 334],
+  ['Dalhousie University', 'CA', 'Halifax', 298],
+  ['York University', 'CA', 'Toronto', 353],
+  ['Concordia University', 'CA', 'Montreal', 415],
+  ['University of Manitoba', 'CA', 'Winnipeg', 601],
+  ['Carleton University', 'CA', 'Ottawa', 631],
+  // ---------------- Germany ----------------
+  ['Technical University of Munich', 'DE', 'Munich', 28],
+  ['Ludwig Maximilian University of Munich', 'DE', 'Munich', 59],
+  ['Heidelberg University', 'DE', 'Heidelberg', 87],
+  ['RWTH Aachen University', 'DE', 'Aachen', 99],
+  ['Technical University of Berlin', 'DE', 'Berlin', 154],
+  ['Humboldt University of Berlin', 'DE', 'Berlin', 120],
+  ['Karlsruhe Institute of Technology', 'DE', 'Karlsruhe', 119],
+  ['Technical University of Darmstadt', 'DE', 'Darmstadt', 279],
+  ['University of Freiburg', 'DE', 'Freiburg', 192],
+  ['University of Stuttgart', 'DE', 'Stuttgart', 312],
+  ['Free University of Berlin', 'DE', 'Berlin', 98],
+  ['University of Tübingen', 'DE', 'Tübingen', 213],
+  ['University of Bonn', 'DE', 'Bonn', 239],
+  ['University of Göttingen', 'DE', 'Göttingen', 251],
+  ['University of Hamburg', 'DE', 'Hamburg', 205],
+  ['University of Cologne', 'DE', 'Cologne', 331],
+  ['TU Dresden', 'DE', 'Dresden', 258],
+  ['University of Mannheim', 'DE', 'Mannheim', 411],
+  ['University of Erlangen-Nuremberg', 'DE', 'Erlangen', 315],
+  ['Ulm University', 'DE', 'Ulm', 501],
+  ['Technical University of Dortmund', 'DE', 'Dortmund', 611],
+  ['Bielefeld University', 'DE', 'Bielefeld', 701],
+  // ---------------- Australia ----------------
+  ['University of Melbourne', 'AU', 'Melbourne', 14],
+  ['University of Sydney', 'AU', 'Sydney', 18],
+  ['Australian National University', 'AU', 'Canberra', 30],
+  ['University of New South Wales', 'AU', 'Sydney', 19],
+  ['University of Queensland', 'AU', 'Brisbane', 40],
+  ['Monash University', 'AU', 'Melbourne', 37],
+  ['University of Western Australia', 'AU', 'Perth', 77],
+  ['University of Adelaide', 'AU', 'Adelaide', 82],
+  ['University of Technology Sydney', 'AU', 'Sydney', 88],
+  ['University of Wollongong', 'AU', 'Wollongong', 167],
+  ['RMIT University', 'AU', 'Melbourne', 140],
+  ['Macquarie University', 'AU', 'Sydney', 130],
+  ['Queensland University of Technology', 'AU', 'Brisbane', 189],
+  ['Curtin University', 'AU', 'Perth', 183],
+  ['Deakin University', 'AU', 'Geelong', 233],
+  ['University of Newcastle', 'AU', 'Newcastle', 173],
+  ['Griffith University', 'AU', 'Gold Coast', 300],
+  ['La Trobe University', 'AU', 'Melbourne', 242],
+  // ---------------- Netherlands ----------------
+  ['Delft University of Technology', 'NL', 'Delft', 47],
+  ['University of Amsterdam', 'NL', 'Amsterdam', 53],
+  ['Eindhoven University of Technology', 'NL', 'Eindhoven', 124],
+  ['Utrecht University', 'NL', 'Utrecht', 107],
+  ['Leiden University', 'NL', 'Leiden', 126],
+  ['University of Groningen', 'NL', 'Groningen', 139],
+  ['Wageningen University', 'NL', 'Wageningen', 124],
+  ['Erasmus University Rotterdam', 'NL', 'Rotterdam', 176],
+  ['VU Amsterdam', 'NL', 'Amsterdam', 220],
+  ['University of Twente', 'NL', 'Enschede', 210],
+  ['Radboud University', 'NL', 'Nijmegen', 226],
+  ['Tilburg University', 'NL', 'Tilburg', 375],
+  // ---------------- Switzerland ----------------
+  ['ETH Zurich', 'CH', 'Zurich', 7],
+  ['EPFL', 'CH', 'Lausanne', 26],
+  ['University of Zurich', 'CH', 'Zurich', 91],
+  ['University of Geneva', 'CH', 'Geneva', 161],
+  ['University of Bern', 'CH', 'Bern', 156],
+  ['University of Basel', 'CH', 'Basel', 136],
+  ['University of Lausanne', 'CH', 'Lausanne', 210],
+  // ---------------- Sweden ----------------
+  ['KTH Royal Institute of Technology', 'SE', 'Stockholm', 73],
+  ['Lund University', 'SE', 'Lund', 85],
+  ['Chalmers University of Technology', 'SE', 'Gothenburg', 129],
+  ['Uppsala University', 'SE', 'Uppsala', 105],
+  ['Stockholm University', 'SE', 'Stockholm', 153],
+  ['University of Gothenburg', 'SE', 'Gothenburg', 187],
+  ['Linköping University', 'SE', 'Linköping', 268],
+  ['Umeå University', 'SE', 'Umeå', 347],
+  // ---------------- Finland ----------------
+  ['Aalto University', 'FI', 'Espoo', 100],
+  ['University of Helsinki', 'FI', 'Helsinki', 106],
+  ['University of Oulu', 'FI', 'Oulu', 301],
+  ['University of Turku', 'FI', 'Turku', 296],
+  ['Tampere University', 'FI', 'Tampere', 361],
+  ['University of Jyväskylä', 'FI', 'Jyväskylä', 350],
+  // ---------------- Denmark ----------------
+  ['Technical University of Denmark', 'DK', 'Kongens Lyngby', 121],
+  ['University of Copenhagen', 'DK', 'Copenhagen', 100],
+  ['Aarhus University', 'DK', 'Aarhus', 156],
+  ['Aalborg University', 'DK', 'Aalborg', 273],
+  ['University of Southern Denmark', 'DK', 'Odense', 340],
+  // ---------------- Norway ----------------
+  ['Norwegian University of Science and Technology', 'NO', 'Trondheim', 292],
+  ['University of Oslo', 'NO', 'Oslo', 117],
+  ['University of Bergen', 'NO', 'Bergen', 234],
+  ['UiT Arctic University of Norway', 'NO', 'Tromsø', 448],
+  // ---------------- Ireland ----------------
+  ['Trinity College Dublin', 'IE', 'Dublin', 87],
+  ['University College Dublin', 'IE', 'Dublin', 171],
+  ['University of Galway', 'IE', 'Galway', 289],
+  ['University College Cork', 'IE', 'Cork', 273],
+  ['Dublin City University', 'IE', 'Dublin', 436],
+  // ---------------- France ----------------
+  ['Sorbonne University', 'FR', 'Paris', 59],
+  ['PSL University', 'FR', 'Paris', 24],
+  ['Institut Polytechnique de Paris', 'FR', 'Palaiseau', 38],
+  ['University of Paris-Saclay', 'FR', 'Gif-sur-Yvette', 71],
+  ['Grenoble Alpes University', 'FR', 'Grenoble', 294],
+  ['University of Paris Cité', 'FR', 'Paris', 236],
+  ['Aix-Marseille University', 'FR', 'Marseille', 381],
+  ['INSA Lyon', 'FR', 'Lyon', 431],
+  ['Sciences Po', 'FR', 'Paris', 319],
+  ['University of Strasbourg', 'FR', 'Strasbourg', 421],
+  // ---------------- Belgium ----------------
+  ['KU Leuven', 'BE', 'Leuven', 61],
+  ['Ghent University', 'BE', 'Ghent', 142],
+  ['UCLouvain', 'BE', 'Louvain-la-Neuve', 191],
+  ['University of Antwerp', 'BE', 'Antwerp', 232],
+  ['Vrije Universiteit Brussel', 'BE', 'Brussels', 209],
+  // ---------------- Italy ----------------
+  ['Politecnico di Milano', 'IT', 'Milan', 123],
+  ['University of Bologna', 'IT', 'Bologna', 133],
+  ['Sapienza University of Rome', 'IT', 'Rome', 134],
+  ['University of Padua', 'IT', 'Padua', 219],
+  ['University of Milan', 'IT', 'Milan', 276],
+  ['Politecnico di Torino', 'IT', 'Turin', 252],
+  ['University of Pisa', 'IT', 'Pisa', 349],
+  ['University of Naples Federico II', 'IT', 'Naples', 415],
+  // ---------------- Japan ----------------
+  ['University of Tokyo', 'JP', 'Tokyo', 28],
+  ['Kyoto University', 'JP', 'Kyoto', 46],
+  ['Tokyo Institute of Technology', 'JP', 'Tokyo', 91],
+  ['Osaka University', 'JP', 'Osaka', 80],
+  ['Tohoku University', 'JP', 'Sendai', 113],
+  ['Nagoya University', 'JP', 'Nagoya', 176],
+  ['Kyushu University', 'JP', 'Fukuoka', 164],
+  ['Hokkaido University', 'JP', 'Sapporo', 196],
+  // ---------------- South Korea ----------------
+  ['Seoul National University', 'KR', 'Seoul', 41],
+  ['KAIST', 'KR', 'Daejeon', 53],
+  ['Yonsei University', 'KR', 'Seoul', 76],
+  ['Korea University', 'KR', 'Seoul', 79],
+  ['POSTECH', 'KR', 'Pohang', 98],
+  ['Sungkyunkwan University', 'KR', 'Suwon', 123],
+  // ---------------- Singapore ----------------
+  ['National University of Singapore', 'SG', 'Singapore', 8],
+  ['Nanyang Technological University', 'SG', 'Singapore', 15],
+  // ---------------- New Zealand ----------------
+  ['University of Auckland', 'NZ', 'Auckland', 65],
+  ['University of Otago', 'NZ', 'Dunedin', 206],
+  ['Victoria University of Wellington', 'NZ', 'Wellington', 241],
+  ['University of Canterbury', 'NZ', 'Christchurch', 256],
+  ['Massey University', 'NZ', 'Palmerston North', 239],
 ];
 
 /** [name, provider, countryCode, universityName|null, fundingType, minCgpa, minIelts] */
@@ -210,42 +323,11 @@ const S: [string, string, string, string | null, FundingType, number, number][] 
   ['KU Leuven Science Scholarship', 'KU Leuven', 'BE', 'KU Leuven', 'PARTIAL', 3.2, 6.5],
 ];
 
-/** [name, universityName, email, accepting, funding, keywords, areas, [pub titles+venue+year]] */
-const P: [
-  string,
-  string,
-  string,
-  boolean,
-  boolean,
-  string[],
-  string[],
-  { title: string; venue: string; year: number }[],
-][] = [
-  ['Prof. Dr. Anna Muller', 'Technical University of Munich', 'a.mueller@tum.de', true, true, ['machine learning', 'deep learning'], ['Machine Learning', 'Artificial Intelligence'], [{ title: 'Efficient Transformers for Vision', venue: 'CVPR', year: 2024 }]],
-  ['Prof. Mikko Virtanen', 'Aalto University', 'mikko.virtanen@aalto.fi', true, false, ['reinforcement learning', 'robotics'], ['Robotics', 'Machine Learning'], [{ title: 'Sample-Efficient RL for Manipulation', venue: 'NeurIPS', year: 2023 }]],
-  ['Prof. Sarah Chen', 'University of Toronto', 's.chen@utoronto.ca', false, true, ['computer vision', 'medical imaging'], ['Computer Vision'], [{ title: 'Self-Supervised Medical Image Segmentation', venue: 'MICCAI', year: 2024 }]],
-  ['Prof. David Kim', 'Stanford University', 'dkim@stanford.edu', true, true, ['nlp', 'large language models'], ['Natural Language Processing', 'Machine Learning'], [{ title: 'Retrieval-Augmented Reasoning in LLMs', venue: 'ACL', year: 2024 }]],
-  ['Prof. Elena Rossi', 'EPFL', 'elena.rossi@epfl.ch', true, true, ['data science', 'graph learning'], ['Data Science', 'Machine Learning'], [{ title: 'Scalable Graph Neural Networks', venue: 'ICML', year: 2023 }]],
-  ['Prof. James Wilson', 'University of Oxford', 'j.wilson@ox.ac.uk', false, true, ['ai safety', 'nlp'], ['Artificial Intelligence', 'Natural Language Processing'], [{ title: 'Alignment Objectives for Language Agents', venue: 'ICLR', year: 2024 }]],
-  ['Prof. Yuki Tanaka', 'National University of Singapore', 'yuki.tanaka@nus.edu.sg', true, false, ['computer vision', 'robotics'], ['Computer Vision', 'Robotics'], [{ title: 'Visual Servoing for Dexterous Grasping', venue: 'ICRA', year: 2023 }]],
-  ['Prof. Laura Schmidt', 'ETH Zurich', 'laura.schmidt@ethz.ch', true, true, ['distributed systems', 'security'], ['Distributed Systems', 'Cybersecurity'], [{ title: 'Byzantine-Robust Federated Learning', venue: 'USENIX Security', year: 2024 }]],
-  ['Prof. Ahmed Hassan', 'University of Edinburgh', 'a.hassan@ed.ac.uk', true, true, ['nlp', 'machine translation'], ['Natural Language Processing', 'Machine Learning'], [{ title: 'Low-Resource Neural Machine Translation', venue: 'EMNLP', year: 2023 }]],
-  ['Prof. Sophie Martin', 'Delft University of Technology', 's.martin@tudelft.nl', true, false, ['robotics', 'control'], ['Robotics'], [{ title: 'Learning Agile Locomotion', venue: 'RSS', year: 2024 }]],
-  ['Prof. Michael Brown', 'Carnegie Mellon University', 'mbrown@cmu.edu', true, true, ['machine learning', 'optimization'], ['Machine Learning', 'Data Science'], [{ title: 'Second-Order Methods for Deep Nets', venue: 'NeurIPS', year: 2024 }]],
-  ['Prof. Priya Nair', 'Imperial College London', 'p.nair@imperial.ac.uk', false, true, ['computer vision', 'generative models'], ['Computer Vision', 'Artificial Intelligence'], [{ title: 'Diffusion Models for 3D Synthesis', venue: 'CVPR', year: 2024 }]],
-  ['Prof. Lars Nielsen', 'Technical University of Denmark', 'lars.nielsen@dtu.dk', true, true, ['bioinformatics', 'data science'], ['Bioinformatics', 'Data Science'], [{ title: 'Deep Learning for Protein Folding', venue: 'Nature Methods', year: 2023 }]],
-  ['Prof. Chloe Dubois', 'University of Amsterdam', 'c.dubois@uva.nl', true, false, ['nlp', 'multimodal'], ['Natural Language Processing', 'Artificial Intelligence'], [{ title: 'Grounded Vision-Language Pretraining', venue: 'ACL', year: 2024 }]],
-  ['Prof. Robert Zhang', 'University of British Columbia', 'r.zhang@ubc.ca', true, true, ['hci', 'data science'], ['Human-Computer Interaction', 'Data Science'], [{ title: 'Explainable Interfaces for ML Models', venue: 'CHI', year: 2024 }]],
-  ['Prof. Ingrid Larsson', 'KTH Royal Institute of Technology', 'ingrid.larsson@kth.se', true, true, ['machine learning', 'signal processing'], ['Machine Learning', 'Data Science'], [{ title: 'Probabilistic Time-Series Forecasting', venue: 'ICML', year: 2023 }]],
-  ['Prof. Kenji Sato', 'University of Tokyo', 'k.sato@u-tokyo.ac.jp', true, false, ['robotics', 'reinforcement learning'], ['Robotics', 'Machine Learning'], [{ title: 'Sim-to-Real Transfer for Humanoids', venue: 'CoRL', year: 2024 }]],
-  ['Prof. Min-jun Park', 'KAIST', 'mjpark@kaist.ac.kr', true, true, ['computer vision', 'efficient ai'], ['Computer Vision', 'Machine Learning'], [{ title: 'Quantization-Aware Vision Transformers', venue: 'ECCV', year: 2024 }]],
-  ['Prof. Thomas Weber', 'RWTH Aachen University', 't.weber@rwth-aachen.de', false, true, ['cybersecurity', 'distributed systems'], ['Cybersecurity', 'Distributed Systems'], [{ title: 'Zero-Trust Architectures at Scale', venue: 'CCS', year: 2023 }]],
-  ['Prof. Olivia Bennett', 'University of Melbourne', 'o.bennett@unimelb.edu.au', true, true, ['data science', 'health informatics'], ['Data Science', 'Bioinformatics'], [{ title: 'Causal Inference in EHR Data', venue: 'KDD', year: 2024 }]],
-  ['Prof. Marco Bianchi', 'Politecnico di Milano', 'marco.bianchi@polimi.it', true, false, ['software engineering', 'cloud'], ['Software Engineering', 'Cloud Computing'], [{ title: 'Serverless Autoscaling Policies', venue: 'ICSE', year: 2023 }]],
-  ['Prof. Hana Kim', 'Seoul National University', 'hana.kim@snu.ac.kr', true, true, ['nlp', 'speech'], ['Natural Language Processing', 'Machine Learning'], [{ title: 'End-to-End Multilingual Speech Recognition', venue: 'INTERSPEECH', year: 2024 }]],
-  ['Prof. Daniel O’Brien', 'Trinity College Dublin', 'daniel.obrien@tcd.ie', true, false, ['hci', 'accessibility'], ['Human-Computer Interaction'], [{ title: 'Adaptive Interfaces for Assistive Tech', venue: 'UIST', year: 2023 }]],
-  ['Prof. Fatima Al-Sayed', 'University of New South Wales', 'f.alsayed@unsw.edu.au', true, true, ['machine learning', 'fairness'], ['Machine Learning', 'Artificial Intelligence'], [{ title: 'Fairness Constraints in Ranking', venue: 'FAccT', year: 2024 }]],
-];
+// Pools used to synthesize one professor per university (so every country has faculty).
+const FIRST = ['Anna', 'Michael', 'Sarah', 'David', 'Elena', 'James', 'Yuki', 'Laura', 'Ahmed', 'Sophie', 'Marco', 'Hana', 'Daniel', 'Fatima', 'Ingrid', 'Kenji', 'Priya', 'Lars', 'Chloe', 'Robert', 'Olivia', 'Thomas', 'Maria', 'John', 'Wei', 'Ana', 'Peter', 'Linda', 'Omar', 'Nadia', 'Carlos', 'Emma', 'Raj', 'Sofia', 'Lucas', 'Mei', 'Ivan', 'Julia', 'Hassan', 'Klara'];
+const LAST = ['Muller', 'Chen', 'Smith', 'Kim', 'Rossi', 'Wilson', 'Tanaka', 'Schmidt', 'Hassan', 'Martin', 'Brown', 'Park', 'Nielsen', 'Dubois', 'Larsson', 'Sato', 'Nair', 'Weber', 'Bennett', 'Bianchi', 'Garcia', 'Johnson', 'Wang', 'Silva', 'Novak', 'Andersson', 'Petrov', 'Kumar', 'Lopez', 'Costa', 'Nakamura', 'Meyer', 'Jensen', 'Ali', 'Fischer', 'Moreau', 'Ivanov', 'Yang', 'Reddy', 'Haddad'];
+const VENUES = ['NeurIPS', 'ICML', 'CVPR', 'ACL', 'ICLR', 'KDD', 'AAAI', 'EMNLP', 'ICRA', 'SIGIR', 'CHI', 'MICCAI'];
+const PUB_ADJ = ['Learning', 'Scalable', 'Robust', 'Efficient', 'Neural', 'Generative', 'Interpretable', 'Federated'];
 
 async function main() {
   console.log('🌱 Seeding countries...');
@@ -264,14 +346,12 @@ async function main() {
     await prisma.researchArea.upsert({ where: { name }, create: { name }, update: {} });
   }
 
-  // ---- Reset the catalog so re-seeding always yields the full, current set ----
   console.log('🧹 Resetting catalog (scholarships, professors, universities, cities)...');
   await prisma.scholarship.deleteMany();
   await prisma.professor.deleteMany();
   await prisma.university.deleteMany(); // cascades departments + programs
   await prisma.city.deleteMany();
 
-  // City cache so we upsert each (name, country) once.
   const cityCache = new Map<string, string>();
   async function cityId(name: string, countryId: string): Promise<string> {
     const key = `${countryId}:${name}`;
@@ -286,26 +366,27 @@ async function main() {
     return city.id;
   }
 
-  console.log(`🌱 Seeding ${U.length} universities...`);
+  console.log(`🌱 Seeding ${U.length} universities (+1 professor each)...`);
   for (let i = 0; i < U.length; i++) {
-    const [name, code, city, qsRanking, tuitionFeeUsd] = U[i];
+    const [name, code, city, qsRanking] = U[i];
     const countryId = codeToId.get(code)!;
     const cid = await cityId(city, countryId);
+    const tuition = TUITION[code] ?? 15000;
     const ielts = qsRanking <= 25 ? 7.0 : 6.5;
     const p1 = PROGRAM_POOL[i % PROGRAM_POOL.length];
     const p2 = PROGRAM_POOL[(i + 3) % PROGRAM_POOL.length];
     const a1 = RESEARCH_AREAS[i % RESEARCH_AREAS.length];
     const a2 = RESEARCH_AREAS[(i + 4) % RESEARCH_AREAS.length];
 
-    await prisma.university.create({
+    const created = await prisma.university.create({
       data: {
         name,
         countryId,
         cityId: cid,
         qsRanking,
-        tuitionFeeUsd,
-        acceptanceRate: Math.max(4, Math.min(65, Math.round(qsRanking / 5 + 8))),
-        applicationFeeUsd: tuitionFeeUsd === 0 ? 75 : 100,
+        tuitionFeeUsd: tuition,
+        acceptanceRate: Math.max(4, Math.min(70, Math.round(qsRanking / 6 + 8))),
+        applicationFeeUsd: tuition === 0 ? 75 : 100,
         website: null,
         researchAreas: {
           connectOrCreate: [a1, a2].map((n) => ({ where: { name: n }, create: { name: n } })),
@@ -319,10 +400,38 @@ async function main() {
                   name: pname,
                   degree: 'MASTER' as DegreeLevel,
                   durationMonths: 24,
-                  tuitionFeeUsd,
+                  tuitionFeeUsd: tuition,
                   englishRequirement: { ielts },
                 })),
               },
+            },
+          ],
+        },
+      },
+    });
+
+    // One professor per university → faculty in every country/city.
+    const first = FIRST[i % FIRST.length];
+    const last = LAST[(i * 3 + 7) % LAST.length];
+    const pa1 = RESEARCH_AREAS[(i + 2) % RESEARCH_AREAS.length];
+    const pa2 = RESEARCH_AREAS[(i + 6) % RESEARCH_AREAS.length];
+    await prisma.professor.create({
+      data: {
+        name: `Prof. ${first} ${last}`,
+        universityId: created.id,
+        email: null,
+        acceptingStudents: i % 3 !== 0,
+        hasFunding: i % 2 === 0,
+        keywords: [pa1.toLowerCase(), pa2.toLowerCase()],
+        researchAreas: {
+          connectOrCreate: [pa1, pa2].map((n) => ({ where: { name: n }, create: { name: n } })),
+        },
+        publications: {
+          create: [
+            {
+              title: `${PUB_ADJ[i % PUB_ADJ.length]} Methods for ${pa1}`,
+              venue: VENUES[i % VENUES.length],
+              year: 2023 + (i % 2),
             },
           ],
         },
@@ -353,32 +462,8 @@ async function main() {
             ? ['Tuition', 'Monthly stipend', 'Travel allowance', 'Health insurance']
             : ['Tuition support'],
         eligibility: {
-          create: {
-            minCgpa,
-            minIelts,
-            degreeLevels: ['MASTER', 'PHD'],
-          },
+          create: { minCgpa, minIelts, degreeLevels: ['MASTER', 'PHD'] },
         },
-      },
-    });
-  }
-
-  console.log(`🌱 Seeding ${P.length} professors...`);
-  for (const [name, uniName, email, accepting, funding, keywords, areas, pubs] of P) {
-    const uni = await prisma.university.findFirst({ where: { name: uniName } });
-    if (!uni) continue;
-    await prisma.professor.create({
-      data: {
-        name,
-        universityId: uni.id,
-        email,
-        acceptingStudents: accepting,
-        hasFunding: funding,
-        keywords,
-        researchAreas: {
-          connectOrCreate: areas.map((n) => ({ where: { name: n }, create: { name: n } })),
-        },
-        publications: { create: pubs },
       },
     });
   }

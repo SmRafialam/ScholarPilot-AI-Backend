@@ -16,6 +16,7 @@ export class UniversityRepository {
     const where: Prisma.UniversityWhereInput = {};
     if (query.q) where.name = { contains: query.q, mode: 'insensitive' };
     if (query.country) where.country = { code: query.country.toUpperCase() };
+    if (query.city) where.city = { name: query.city };
     if (query.maxRanking) where.qsRanking = { lte: query.maxRanking };
 
     const orderBy: Prisma.UniversityOrderByWithRelationInput =
@@ -47,6 +48,16 @@ export class UniversityRepository {
         researchAreas: true,
       },
     });
+  }
+
+  /** Distinct city names, optionally scoped to a country code. */
+  async listCities(countryCode?: string): Promise<string[]> {
+    const rows = await this.prisma.city.findMany({
+      where: countryCode ? { country: { code: countryCode.toUpperCase() } } : {},
+      select: { name: true },
+      orderBy: { name: 'asc' },
+    });
+    return rows.map((r) => r.name);
   }
 
   createUniversity(data: Prisma.UniversityCreateInput) {

@@ -27,6 +27,10 @@ export class UniversityService {
     return this.repo.findManyFiltered(query);
   }
 
+  listCities(country?: string) {
+    return this.repo.listCities(country);
+  }
+
   async getById(id: string) {
     const university = await this.repo.findById(id);
     if (!university) throw new NotFoundException('University not found');

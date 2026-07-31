@@ -35,6 +35,12 @@ export class UniversityController {
     return this.service.list(query);
   }
 
+  /** Distinct city names for the filter dropdown, optionally scoped to ?country=XX. */
+  @Get('cities')
+  listCities(@Query('country') country?: string) {
+    return this.service.listCities(country);
+  }
+
   @Get('universities/:id')
   getOne(@Param('id') id: string) {
     return this.service.getById(id);
