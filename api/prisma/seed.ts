@@ -346,6 +346,16 @@ async function main() {
     await prisma.researchArea.upsert({ where: { name }, create: { name }, update: {} });
   }
 
+  // Guard: if the catalog is already fully populated, skip the destructive reset.
+  // This makes it safe to leave RUN_SEED=true across free-tier cold-start restarts.
+  const existingUnis = await prisma.university.count();
+  if (existingUnis >= U.length && !process.env.FORCE_SEED) {
+    console.log(
+      `↩️  Catalog already has ${existingUnis} universities (>= ${U.length}); skipping reseed. Set FORCE_SEED=true to override.`,
+    );
+    return;
+  }
+
   console.log('🧹 Resetting catalog (scholarships, professors, universities, cities)...');
   await prisma.scholarship.deleteMany();
   await prisma.professor.deleteMany();
