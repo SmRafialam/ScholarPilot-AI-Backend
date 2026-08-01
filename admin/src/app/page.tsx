@@ -39,6 +39,11 @@ interface Traffic {
   visitorsToday: number;
   series: { date: string; views: number; visitors: number }[];
   topPaths: { path: string; views: number }[];
+  topCountries: { country: string; views: number }[];
+}
+interface Online {
+  onlineNow: number;
+  byCountry: { country: string; count: number }[];
 }
 
 /* --------------------------------------------------------------- page */
@@ -49,6 +54,7 @@ export default function AdminDashboard() {
 
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [traffic, setTraffic] = useState<Traffic | null>(null);
+  const [online, setOnline] = useState<Online | null>(null);
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
@@ -94,6 +100,15 @@ export default function AdminDashboard() {
       loadUsers();
     }
   }, [user, loadAnalytics, loadUsers]);
+
+  // Live "online now" — poll every 15s.
+  useEffect(() => {
+    if (!user || !ADMIN_ROLES.includes(user.role)) return;
+    const load = () => api<Online>("/analytics/online").then(setOnline).catch(() => {});
+    load();
+    const t = setInterval(load, 15_000);
+    return () => clearInterval(t);
+  }, [user]);
 
   async function mutate(id: string, path: string, body: object) {
     setBusyId(id);
@@ -209,7 +224,7 @@ export default function AdminDashboard() {
           )}
 
           {/* Traffic */}
-          {traffic && <TrafficPanel traffic={traffic} />}
+          {traffic && <TrafficPanel traffic={traffic} online={online} />}
 
           {/* Users table */}
           <div id="users" className="glass overflow-hidden rounded-2xl">
@@ -341,9 +356,12 @@ function StatCard({ label, value, icon, tone, delay }: { label: string; value: n
   );
 }
 
-function TrafficPanel({ traffic }: { traffic: Traffic }) {
+function TrafficPanel({ traffic, online }: { traffic: Traffic; online: Online | null }) {
   const maxViews = Math.max(1, ...traffic.series.map((s) => s.views));
   const maxPath = Math.max(1, ...traffic.topPaths.map((p) => p.views));
+  const maxCountry = Math.max(1, ...traffic.topCountries.map((c) => c.views));
+  const onlineNow = online?.onlineNow ?? 0;
+
   return (
     <div id="traffic" className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -359,7 +377,7 @@ function TrafficPanel({ traffic }: { traffic: Traffic }) {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold">Traffic — last 14 days</h2>
-              <p className="text-xs text-muted">Page views (bar) &amp; unique visitors (dot)</p>
+              <p className="text-xs text-muted">Daily page views</p>
             </div>
             <span className="rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand">
               {traffic.viewsThisWeek.toLocaleString()} this week
@@ -375,6 +393,53 @@ function TrafficPanel({ traffic }: { traffic: Traffic }) {
                   />
                 </div>
                 <span className="text-[9px] text-muted">{s.date.slice(5)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Live "online now" */}
+        <div className="glass animate-fade-up rounded-2xl p-6">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-70" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
+            </span>
+            <h2 className="text-base font-semibold">Online now</h2>
+          </div>
+          <div className="mt-3 gradient-text text-5xl font-bold">{onlineNow.toLocaleString()}</div>
+          <p className="text-xs text-muted">active in the last 2 minutes</p>
+
+          <div className="mt-5 space-y-2">
+            {online && online.byCountry.length > 0 ? (
+              online.byCountry.map((c) => (
+                <div key={c.country} className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5 text-muted"><GlobeIcon /> {c.country}</span>
+                  <span className="font-medium">{c.count}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted">No one online right now.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Top countries */}
+        <div className="glass animate-fade-up rounded-2xl p-6">
+          <h2 className="mb-4 text-base font-semibold">Top countries</h2>
+          <div className="space-y-3">
+            {traffic.topCountries.length === 0 && <p className="text-sm text-muted">No visits yet.</p>}
+            {traffic.topCountries.map((c) => (
+              <div key={c.country}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5"><GlobeIcon /> {c.country}</span>
+                  <span className="ml-2 shrink-0 text-muted">{c.views.toLocaleString()}</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-black/[0.06]">
+                  <div className="h-full rounded-full bg-gradient-to-r from-brand-2 to-accent" style={{ width: `${(c.views / maxCountry) * 100}%` }} />
+                </div>
               </div>
             ))}
           </div>
@@ -400,6 +465,15 @@ function TrafficPanel({ traffic }: { traffic: Traffic }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-3.5 w-3.5 shrink-0 text-muted">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
+    </svg>
   );
 }
 

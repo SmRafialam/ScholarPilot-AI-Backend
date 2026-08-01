@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Geo } from './geo.service';
 
 export interface DaySeries {
   date: string;
@@ -27,6 +28,34 @@ export class AnalyticsRepository {
         userAgent: data.userAgent ? data.userAgent.slice(0, 512) : null,
       },
     });
+  }
+
+  setGeo(id: string, geo: Geo) {
+    return this.prisma.pageView.update({
+      where: { id },
+      data: { country: geo.country ?? null, countryCode: geo.countryCode ?? null, city: geo.city ?? null },
+    });
+  }
+
+  upsertPresence(visitorId: string, path: string | null, geo: Geo) {
+    const now = new Date();
+    return this.prisma.visitorPresence.upsert({
+      where: { visitorId },
+      create: { visitorId, path, country: geo.country ?? null, countryCode: geo.countryCode ?? null, lastSeen: now },
+      update: { path, country: geo.country ?? null, countryCode: geo.countryCode ?? null, lastSeen: now },
+    });
+  }
+
+  async online(cutoff: Date) {
+    const onlineNow = await this.prisma.visitorPresence.count({ where: { lastSeen: { gte: cutoff } } });
+    const byCountry = await this.prisma.$queryRaw<{ country: string; count: number }[]>`
+      SELECT COALESCE("country", 'Unknown') AS country, COUNT(*)::int AS count
+      FROM "VisitorPresence"
+      WHERE "lastSeen" >= ${cutoff}
+      GROUP BY 1
+      ORDER BY count DESC
+      LIMIT 8`;
+    return { onlineNow, byCountry };
   }
 
   async traffic(startOfDay: Date, weekAgo: Date) {
@@ -57,6 +86,13 @@ export class AnalyticsRepository {
       ORDER BY views DESC
       LIMIT 8`;
 
+    const topCountries = await this.prisma.$queryRaw<{ country: string; views: number }[]>`
+      SELECT COALESCE("country", 'Unknown') AS country, COUNT(*)::int AS views
+      FROM "PageView"
+      GROUP BY 1
+      ORDER BY views DESC
+      LIMIT 8`;
+
     return {
       totalViews,
       viewsToday,
@@ -65,6 +101,7 @@ export class AnalyticsRepository {
       visitorsToday: uniqToday[0]?.c ?? 0,
       series,
       topPaths,
+      topCountries,
     };
   }
 }

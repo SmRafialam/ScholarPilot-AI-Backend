@@ -800,17 +800,33 @@ model AiUsageLog {
 
 /// Anonymous traffic / page-view tracking for the site analytics.
 model PageView {
-  id        String   @id @default(cuid())
-  path      String
-  visitorId String // anonymous per-browser id (localStorage)
-  userId    String? // set when the visitor is logged in
-  referrer  String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  path        String
+  visitorId   String // anonymous per-browser id (localStorage)
+  userId      String? // set when the visitor is logged in
+  referrer    String?
+  userAgent   String?
+  country     String? // resolved from IP geo-lookup
+  countryCode String?
+  city        String?
+  createdAt   DateTime @default(now())
 
   @@index([createdAt])
   @@index([visitorId])
   @@index([path])
+  @@index([country])
+}
+
+/// Live presence — one row per visitor, refreshed by heartbeat pings.
+/// "Online now" = rows whose lastSeen is within the presence window.
+model VisitorPresence {
+  visitorId   String   @id
+  path        String?
+  country     String?
+  countryCode String?
+  lastSeen    DateTime @default(now())
+
+  @@index([lastSeen])
 }
 
 // ============================ BILLING =======================================
