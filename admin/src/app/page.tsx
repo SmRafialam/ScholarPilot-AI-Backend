@@ -31,6 +31,15 @@ interface Paged<T> {
   page: number;
   limit: number;
 }
+interface Traffic {
+  totalViews: number;
+  viewsToday: number;
+  viewsThisWeek: number;
+  uniqueVisitors: number;
+  visitorsToday: number;
+  series: { date: string; views: number; visitors: number }[];
+  topPaths: { path: string; views: number }[];
+}
 
 /* --------------------------------------------------------------- page */
 
@@ -39,6 +48,7 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [traffic, setTraffic] = useState<Traffic | null>(null);
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
@@ -60,6 +70,7 @@ export default function AdminDashboard() {
 
   const loadAnalytics = useCallback(() => {
     api<Analytics>("/admin/analytics").then(setAnalytics).catch(() => {});
+    api<Traffic>("/analytics/traffic").then(setTraffic).catch(() => {});
   }, []);
 
   const loadUsers = useCallback(async () => {
@@ -136,6 +147,7 @@ export default function AdminDashboard() {
 
         <nav className="flex flex-1 flex-col gap-1 text-sm">
           <NavItem href="#overview" label="Overview" active icon="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z" />
+          <NavItem href="#traffic" label="Traffic" icon="M3 3v18h18M7 14l4-4 3 3 5-6" />
           <NavItem href="#users" label="Users & Plans" icon="M17 20v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
           <a href="https://scholar-pilot-ai-flame.vercel.app" target="_blank" rel="noreferrer" className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-muted transition-colors hover:bg-black/[0.04] hover:text-foreground">
             <Icon path="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" className="h-[18px] w-[18px]" />
@@ -195,6 +207,9 @@ export default function AdminDashboard() {
               <Mini label="AI cost" value={`$${(analytics.ai.costCents / 100).toFixed(2)}`} />
             </div>
           )}
+
+          {/* Traffic */}
+          {traffic && <TrafficPanel traffic={traffic} />}
 
           {/* Users table */}
           <div id="users" className="glass overflow-hidden rounded-2xl">
@@ -322,6 +337,68 @@ function StatCard({ label, value, icon, tone, delay }: { label: string; value: n
       </span>
       <div className="mt-4 text-2xl font-bold">{value.toLocaleString()}</div>
       <div className="text-sm text-muted">{label}</div>
+    </div>
+  );
+}
+
+function TrafficPanel({ traffic }: { traffic: Traffic }) {
+  const maxViews = Math.max(1, ...traffic.series.map((s) => s.views));
+  const maxPath = Math.max(1, ...traffic.topPaths.map((p) => p.views));
+  return (
+    <div id="traffic" className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total page views" value={traffic.totalViews} icon="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" tone="brand" delay={0} />
+        <StatCard label="Unique visitors" value={traffic.uniqueVisitors} icon="M17 20v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" tone="brand-2" delay={0.05} />
+        <StatCard label="Views today" value={traffic.viewsToday} icon="M12 8v4l3 3M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" tone="accent" delay={0.1} />
+        <StatCard label="Visitors today" value={traffic.visitorsToday} icon="M20 21a8 8 0 1 0-16 0M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" tone="success" delay={0.15} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* 14-day chart */}
+        <div className="glass animate-fade-up rounded-2xl p-6 lg:col-span-2">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold">Traffic — last 14 days</h2>
+              <p className="text-xs text-muted">Page views (bar) &amp; unique visitors (dot)</p>
+            </div>
+            <span className="rounded-full bg-brand/15 px-3 py-1 text-xs font-medium text-brand">
+              {traffic.viewsThisWeek.toLocaleString()} this week
+            </span>
+          </div>
+          <div className="flex h-40 items-end justify-between gap-1.5">
+            {traffic.series.map((s) => (
+              <div key={s.date} className="group flex flex-1 flex-col items-center gap-1.5" title={`${s.date}: ${s.views} views, ${s.visitors} visitors`}>
+                <div className="relative flex w-full flex-1 items-end">
+                  <div
+                    className="w-full rounded-t-md bg-gradient-to-t from-brand to-brand-2 transition-all group-hover:brightness-110"
+                    style={{ height: `${Math.max(3, (s.views / maxViews) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-[9px] text-muted">{s.date.slice(5)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top pages */}
+        <div className="glass animate-fade-up rounded-2xl p-6">
+          <h2 className="mb-4 text-base font-semibold">Top pages</h2>
+          <div className="space-y-3">
+            {traffic.topPaths.length === 0 && <p className="text-sm text-muted">No visits yet.</p>}
+            {traffic.topPaths.map((p) => (
+              <div key={p.path}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="truncate font-mono text-xs">{p.path}</span>
+                  <span className="ml-2 shrink-0 text-muted">{p.views.toLocaleString()}</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-black/[0.06]">
+                  <div className="h-full rounded-full bg-gradient-to-r from-brand to-accent" style={{ width: `${(p.views / maxPath) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

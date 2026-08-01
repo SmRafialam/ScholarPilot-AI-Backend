@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AiModule } from './modules/ai/ai.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AssistantModule } from './modules/assistant/assistant.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
@@ -66,6 +67,7 @@ const WORKERS_ENABLED = process.env.DISABLE_WORKERS !== 'true';
     AdminModule,
     NotificationModule,
     BillingModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -798,6 +798,21 @@ model AiUsageLog {
   @@index([provider, createdAt])
 }
 
+/// Anonymous traffic / page-view tracking for the site analytics.
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  visitorId String // anonymous per-browser id (localStorage)
+  userId    String? // set when the visitor is logged in
+  referrer  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId])
+  @@index([path])
+}
+
 // ============================ BILLING =======================================
 
 model Subscription {
