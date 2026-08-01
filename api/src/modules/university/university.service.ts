@@ -31,6 +31,10 @@ export class UniversityService {
     return this.repo.listCities(country);
   }
 
+  listCountries() {
+    return this.repo.listCountries();
+  }
+
   async getById(id: string) {
     const university = await this.repo.findById(id);
     if (!university) throw new NotFoundException('University not found');

@@ -50,6 +50,14 @@ export class UniversityRepository {
     });
   }
 
+  /** All countries (for the home-country / nationality selector). */
+  listCountries() {
+    return this.prisma.country.findMany({
+      select: { id: true, name: true, code: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   /** Distinct city names, optionally scoped to a country code. */
   async listCities(countryCode?: string): Promise<string[]> {
     const rows = await this.prisma.city.findMany({

@@ -41,6 +41,12 @@ export class UniversityController {
     return this.service.listCities(country);
   }
 
+  /** All countries — for the home-country / nationality selector. */
+  @Get('countries')
+  listCountries() {
+    return this.service.listCountries();
+  }
+
   @Get('universities/:id')
   getOne(@Param('id') id: string) {
     return this.service.getById(id);
