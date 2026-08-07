@@ -1,0 +1,27 @@
+name: keep-warm
+
+# Render's free tier spins the backend down after ~15 min of inactivity, and the
+# next request then takes ~50s to wake it. Pinging it on a schedule keeps the
+# container warm so real user requests stay fast.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # every 10 minutes
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake the backend
+        run: |
+          URL="https://scholarpilot-ai-backend.onrender.com/api/v1/countries"
+          # --max-time 120 tolerates a cold start on the ping itself (up to ~50s).
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 "$URL" || echo "000")
+          echo "Ping -> HTTP $code"
+          # A 401 (auth required) still means the app is up and warm.
+          if [ "$code" = "000" ]; then
+            echo "No response — retrying once..."
+            sleep 15
+            curl -s -o /dev/null -w "retry -> HTTP %{http_code}\n" --max-time 120 "$URL" || true
+          fi
